@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hangman Vocabulary Game - Words Starting With 'A'</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .game-container {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-width: 600px;
+    text-align: center;
+  }
+  h1 { font-size: 24px; margin-bottom: 20px; }
+  #definition { font-size: 18px; margin-bottom: 20px; }
+  #word-display { font-size: 32px; letter-spacing: 5px; margin-bottom: 20px; }
+  #letters button {
+    margin: 3px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: none;
+    background: #e3e7ef;
+    cursor: pointer;
+  }
+  #letters button:hover { background: #d0d7e6; }
+  #letters button:disabled { background: #ccc; cursor: not-allowed; }
+  #message { margin-top: 15px; font-weight: bold; }
+  #restart { margin-top: 20px; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: #4a90e2; color: white; cursor: pointer; display: none; }
+  #progress { margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <h1>Hangman Vocabulary Game - Words Starting With 'A'</h1>
+  <div id="definition">Loading definition...</div>
+  <div id="word-display"></div>
+  <div id="letters"></div>
+  <div id="message"></div>
+  <div id="progress">Word 0 of 0</div>
+  <button id="restart">Restart Game</button>
+</div>
+
+<script>
+const words = [
+  {word: 'Abandon', def: 'To leave something or someone behind.'},
+  {word: 'Abstract', def: 'Based on ideas, not physical things'},
+  {word: 'Accommodate', def: 'To give space or help to someone.'},
+  {word: 'Accompany', def: 'To go with someone or something.'},
+  {word: 'Accumulate', def: 'To collect or gather over time.'},
+  {word: 'Accurate', def: 'Correct and without mistakes'},
+  {word: 'Achieve', def: 'To successfully do something after working hard'},
+  {word: 'Acquire', def: 'To get or learn something'},
+  {word: 'Adequate', def: 'Good enough or acceptable, but not perfect'},
+  {word: 'Adjacent', def: 'Next to something.'},
+  {word: 'Adjust', def: 'To change something slightly to make it better or more correct'},
+  {word: 'Administrate', def: 'To manage or organise things'},
+  {word: 'Affect', def: 'To cause a change'},
+  {word: 'Aggregate', def: 'A total amount made of smaller parts'},
+  {word: 'Albeit', def: 'Although.'},
+  {word: 'Allocate', def: 'To give or share something for a specific use'},
+  {word: 'Alter', def: 'To change something'},
+  {word: 'Alternative', def: 'Another choice or option'},
+  {word: 'Ambiguous', def: 'Not clear; having more than one meaning.'},
+  {word: 'Amend', def: 'To make small changes, especially to a document, rule, or law'},
+  {word: 'Analogy', def: 'A comparison between two things to explain an idea.'},
+  {word: 'Analyse', def: 'Inspect or study something in detail; look closely'},
+  {word: 'Anticipate', def: 'To expect something to happen.'},
+  {word: 'Apparent', def: 'Easy to see or understand; clear'},
+  {word: 'Append', def: 'To add something at the end.'},
+  {word: 'Approach', def: 'A way of looking at a situation'},
+  {word: 'Appropriate', def: 'Right or suitable for a situation'},
+  {word: 'Approximate', def: 'Almost correct or close to the real number or amount'},
+  {word: 'Arbitrary', def: 'Based on personal choice, not a fixed reason.'},
+  {word: 'Aspect', def: 'A part or side of something'},
+  {word: 'Assemble', def: 'To bring things or people together in one place.'},
+  {word: 'Assess', def: 'Judge or evaluate something'},
+  {word: 'Assign', def: 'To give someone a task or responsibility'},
+  {word: 'Assist', def: 'To help'},
+  {word: 'Assume', def: 'Take over; suppose that something is'},
+  {word: 'Assure', def: 'To tell someone something is certain.'},
+  {word: 'Attain', def: 'To reach or achieve something.'},
+  {word: 'Attribute', def: 'A quality or feature of something'},
+  {word: 'Authority', def: 'Power; a person who has control over others'},
+  {word: 'Automate', def: 'To make a process work by itself using machines.'},
+  {word: 'Available', def: 'Able to be used; free'},
+  {word: 'Aware', def: 'Knowing about something or noticing it'}
+];
+
+let currentIndex = 0;
+let currentWord, guessedLetters, displayWord;
+
+const definitionEl = document.getElementById('definition');
+const wordDisplayEl = document.getElementById('word-display');
+const lettersEl = document.getElementById('letters');
+const messageEl = document.getElementById('message');
+const restartBtn = document.getElementById('restart');
+const progressEl = document.getElementById('progress');
+
+function initWord() {
+  currentWord = words[currentIndex];
+  guessedLetters = [];
+  displayWord = '_'.repeat(currentWord.word.length).split('');
+  definitionEl.textContent = `Definition: ${currentWord.def}`;
+  wordDisplayEl.textContent = displayWord.join(' ');
+  messageEl.textContent = '';
+  progressEl.textContent = `Word ${currentIndex + 1} of ${words.length}`;
+  createLetterButtons();
+}
+
+function createLetterButtons() {
+  lettersEl.innerHTML = '';
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const btn = document.createElement('button');
+    btn.textContent = letter;
+    btn.onclick = () => guessLetter(letter, btn);
+    lettersEl.appendChild(btn);
+  }
+}
+
+function guessLetter(letter, button) {
+  button.disabled = true;
+  let correctGuess = false;
+  for (let i = 0; i < currentWord.word.length; i++) {
+    if (currentWord.word[i].toUpperCase() === letter) {
+      displayWord[i] = currentWord.word[i];
+      correctGuess = true;
+    }
+  }
+  wordDisplayEl.textContent = displayWord.join(' ');
+  if (!correctGuess) messageEl.textContent = `Wrong guess: ${letter}`;
+  else messageEl.textContent = '';
+  if (!displayWord.includes('_')) {
+    messageEl.textContent = '🎉 Correct!';
+    disableAllButtons();
+    if (currentIndex < words.length - 1) {
+      currentIndex++;
+      setTimeout(initWord, 1000);
+    } else {
+      messageEl.textContent = '🏆 You completed all words!';
+      restartBtn.style.display = 'inline-block';
+    }
+  }
+}
+
+function disableAllButtons() {
+  const buttons = lettersEl.querySelectorAll('button');
+  buttons.forEach(btn => btn.disabled = true);
+}
+
+restartBtn.onclick = () => {
+  currentIndex = 0;
+  restartBtn.style.display = 'none';
+  initWord();
+};
+
+initWord();
+</script>
+</body>
+</html>
