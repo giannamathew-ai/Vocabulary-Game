@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocabulary Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+      text-align: center;
+    }
+    h1 { font-size: 24px; margin-bottom: 20px; }
+    .definition { font-size: 18px; margin-bottom: 20px; }
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #e3e7ef;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    .options button:hover { background: #d0d7e6; }
+    .correct { background: #a3e6a3 !important; }
+    .wrong { background: #f4a6a6 !important; }
+    #next-btn, #restart-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #4a90e2;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    .progress-bar {
+      height: 20px;
+      width: 100%;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #4a90e2;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Vocabulary Quiz! Words starting with 'A'</h1>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="definition" id="definition">Loading...</div>
+    <div class="options" id="options"></div>
+    <button id="next-btn">Next</button>
+    <button id="restart-btn">Restart</button>
+    <p id="score"></p>
+  </div>
+
+  <script>
+    const words = [
+      {word: "Abandon", def: "To leave something or someone behind."},
+      {word: "Abstract", def: "Based on ideas, not physical things"},
+      {word: "Accommodate", def: "To give space or help to someone."},
+      {word: "Accompany", def: "To go with someone or something."},
+      {word: "Accumulate", def: "To collect or gather over time."},
+      {word: "Accurate", def: "Correct and without mistakes"},
+      {word: "Achieve", def: "To successfully do something after working hard"},
+      {word: "Acquire", def: "To get or learn something"},
+      {word: "Adequate", def: "Good enough or acceptable, but not perfect"},
+      {word: "Adjacent", def: "Next to something."},
+      {word: "Adjust", def: "To change something slightly to make it better or more correct"},
+      {word: "Administrate", def: "To manage or organise things"},
+      {word: "Affect", def: "To cause a change"},
+      {word: "Aggregate", def: "A total amount made of smaller parts"},
+      {word: "Albeit", def: "Although."},
+      {word: "Allocate", def: "To give or share something for a specific use"},
+      {word: "Alter", def: "To change something"},
+      {word: "Alternative", def: "Another choice or option"},
+      {word: "Ambiguous", def: "Not clear; having more than one meaning."},
+      {word: "Amend", def: "To make small changes, especially to a document, rule, or law"},
+      {word: "Analogy", def: "A comparison between two things to explain an idea."},
+      {word: "Analyse", def: "Inspect or study something in detail; look closely"},
+      {word: "Anticipate", def: "To expect something to happen."},
+      {word: "Apparent", def: "Easy to see or understand; clear"},
+      {word: "Append", def: "To add something at the end."},
+      {word: "Approach", def: "A way of looking at a situation"},
+      {word: "Appropriate", def: "Right or suitable for a situation"},
+      {word: "Approximate", def: "Almost correct or close to the real number or amount"},
+      {word: "Arbitrary", def: "Based on personal choice, not a fixed reason."},
+      {word: "Aspect", def: "A part or side of something"},
+      {word: "Assemble", def: "To bring things or people together in one place."},
+      {word: "Assess", def: "Judge or evaluate something"},
+      {word: "Assign", def: "To give someone a task or responsibility"},
+      {word: "Assist", def: "To help"},
+      {word: "Assume", def: "Take over; suppose that something is"},
+      {word: "Assure", def: "To tell someone something is certain."},
+      {word: "Attain", def: "To reach or achieve something."},
+      {word: "Attribute", def: "A quality or feature of something"},
+      {word: "Authority", def: "Power; a person who has control over others"},
+      {word: "Automate", def: "To make a process work by itself using machines."},
+      {word: "Available", def: "Able to be used; free"},
+      {word: "Aware", def: "Knowing about something or noticing it"}
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let quizQuestions = [];
+
+    const definitionEl = document.getElementById("definition");
+    const optionsEl = document.getElementById("options");
+    const nextBtn = document.getElementById("next-btn");
+    const restartBtn = document.getElementById("restart-btn");
+    const scoreEl = document.getElementById("score");
+    const progressEl = document.getElementById("progress");
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      quizQuestions = shuffle([...words]);
+      scoreEl.textContent = "";
+      restartBtn.style.display = "none";
+      updateProgress();
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      optionsEl.innerHTML = "";
+      nextBtn.style.display = "none";
+      const q = quizQuestions[currentQuestion];
+      definitionEl.textContent = q.def;
+
+      let wrongOptions = shuffle(words.filter(w => w.word !== q.word)).slice(0, 3);
+      let options = shuffle([q, ...wrongOptions]);
+
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.word;
+        btn.onclick = () => selectAnswer(btn, q.word);
+        optionsEl.appendChild(btn);
+      });
+
+      updateProgress();
+    }
+
+    function selectAnswer(button, correct) {
+      const allButtons = optionsEl.querySelectorAll("button");
+      allButtons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correct) btn.classList.add("correct");
+      });
+
+      if (button.textContent === correct) {
+        score++;
+      } else {
+        button.classList.add("wrong");
+      }
+
+      scoreEl.textContent = `Score: ${score}/${currentQuestion + 1}`;
+      nextBtn.style.display = "inline-block";
+    }
+
+    nextBtn.onclick = () => {
+      currentQuestion++;
+      if (currentQuestion < quizQuestions.length) {
+        loadQuestion();
+      } else {
+        definitionEl.textContent = "Quiz complete!";
+        optionsEl.innerHTML = "";
+        nextBtn.style.display = "none";
+        restartBtn.style.display = "inline-block";
+        scoreEl.textContent = `Final Score: ${score}/${quizQuestions.length}`;
+        updateProgress(true);
+      }
+    };
+
+    restartBtn.onclick = startQuiz;
+
+    function updateProgress(complete = false) {
+      if (complete) {
+        progressEl.style.width = "100%";
+      } else {
+        const progress = (currentQuestion / words.length) * 100;
+        progressEl.style.width = `${progress}%`;
+      }
+    }
+
+    startQuiz();
+  </script>
+</body>
+</html>
